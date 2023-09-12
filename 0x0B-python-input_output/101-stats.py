@@ -1,51 +1,47 @@
 #!/usr/bin/python3
+import sys
+import signal
 
-def print_stats(size, status_codes):
-    """function prints accumulated metrics.
+# Initialize variables to store metrics
+total_file_size = 0
+status_code_counts = {}
 
-    Args:
-        size (int): Accumulated read file size.
-        status_codes (dict): Accumulated count of status codes.
-    """
-    print("File size: {}".format(size))
-    for key in sorted(status_codes):
-        print("{}: {}".format(key, status_codes[key]))
+# Define a function to handle SIGINT (CTRL + C) and print metrics
+def handle_interrupt(sig, frame):
+    print_metrics()
 
+# Register the signal handler for SIGINT
+signal.signal(signal.SIGINT, handle_interrupt)
 
-if __name__ == "__main__":
-    import sys
+# Function to print metrics
+def print_metrics():
+    print(f"File size: {total_file_size}")
+    sorted_status_codes = sorted(status_code_counts.keys())
+    for code in sorted_status_codes:
+        count = status_code_counts[code]
+        print(f"{code}: {count}")
 
-    size = 0
-    status_codes = {}
-    valid_codes = ['200', '301', '400', '401', '403', '404', '405', '500']
-    count = 0
+line_count = 0
 
-    try:
-        for line in sys.stdin:
-            if count == 10:
-                print_stats(size, status_codes)
-                count = 1
-            else:
-                count += 1
-
-            line = line.split()
-
-            try:
-                size += int(line[-1])
-            except (IndexError, ValueError):
-                pass
-
-            try:
-                if line[-2] in valid_codes:
-                    if status_codes.get(line[-2], -1) == -1:
-                        status_codes[line[-2]] = 1
-                    else:
-                        status_codes[line[-2]] += 1
-            except IndexError:
-                pass
-
-        print_stats(size, status_codes)
-
-    except KeyboardInterrupt:
-        print_stats(size, status_codes)
-        raise
+# Read input lines from stdin
+for line in sys.stdin:
+    line_count += 1
+    parts = line.split()
+    
+    # Check if the line has the expected format
+    if len(parts) >= 7:
+        status_code = parts[-2]
+        file_size = int(parts[-1])
+        
+        # Update total file size
+        total_file_size += file_size
+        
+        # Update status code counts
+        if status_code in status_code_counts:
+            status_code_counts[status_code] += 1
+        else:
+            status_code_counts[status_code] = 1
+        
+        # Print metrics every 10 lines
+        if line_count % 10 == 0:
+            print_metrics()
