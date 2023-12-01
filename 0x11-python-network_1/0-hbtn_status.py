@@ -1,28 +1,16 @@
-#!/usr/bin/python3
-"""
-This script takes my GitHub credentials (username and password)
-and uses GitHub API to display my ID.
-We must use Basic Authentication with a Personal Access Token (PAT) as the password.
-"""
-
-import sys
-import requests
-from requests.auth import HTTPBasicAuth
+import urllib.request
+import urllib.error
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: {} <username> <PAT>".format(sys.argv[0]))
-        sys.exit(1)
-
-    username = sys.argv[1]
-    pat = sys.argv[2]
-
-    auth = HTTPBasicAuth(username, pat)
-    response = requests.get("https://api.github.com/user", auth=auth)
-
-    if response.status_code == 200:
-        json_resp = response.json()
-        user_id = json_resp.get('id')
-        print(user_id)
-    else:
-        print("Failed to fetch user ID. Status code:", response.status_code)
+    url = 'https://alx-intranet.hbtn.io/status'
+    try:
+        with urllib.request.urlopen(url) as response:
+            html = response.read()
+            print("Body response:")
+            print("\t- type: {}".format(type(html)))
+            print("\t- content: {}".format(html))
+            print("\t- utf8 content: {}".format(html.decode('utf-8')))
+    except urllib.error.HTTPError as e:
+        print("HTTPError: {}".format(e.code))
+    except urllib.error.URLError as e:
+        print("URLError: {}".format(e.reason))
