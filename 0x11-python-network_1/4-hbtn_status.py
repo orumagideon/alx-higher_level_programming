@@ -2,7 +2,7 @@
 """
  Request resources from the URL provided
 """
-import sys
+
 import requests
 
 if __name__ == "__main__":
